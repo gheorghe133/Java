@@ -1,5 +1,4 @@
 public class CompilePolymorphism {
-    // polimorfism la nivel de compilare
     int add(int a, int b) {
         return a + b;
     }
