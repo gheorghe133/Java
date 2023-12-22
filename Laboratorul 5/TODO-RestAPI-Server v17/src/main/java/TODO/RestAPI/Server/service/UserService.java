@@ -3,6 +3,7 @@ package TODO.RestAPI.Server.service;
 import TODO.RestAPI.Server.entity.User;
 import TODO.RestAPI.Server.entity.Task;
 import TODO.RestAPI.Server.entity.Category;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import TODO.RestAPI.Server.repository.UserRepository;
@@ -21,7 +22,9 @@ public class UserService {
     }
 
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        List<User> users = userRepository.findAll();
+        users.forEach(User::updateNumberOfTasks);
+        return users;
     }
 
     public Optional<User> getUserById(Long id) {
@@ -80,6 +83,7 @@ public class UserService {
         return updatedTask;
     }
 
+    @Transactional
     public void deleteTaskForUser(Long userId, Long taskId) {
         getTaskByIdForUser(userId, taskId).ifPresent(task -> {
             task.getUser().getTasks().remove(task);
