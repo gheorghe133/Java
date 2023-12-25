@@ -34,7 +34,7 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
           </thead>
           <tbody>
             <tr
-              *ngFor="let user of userDisplay"
+              *ngFor="let user of displayedUsers"
               (click)="navigateToUserPage(user)"
             >
               <td>
@@ -68,6 +68,40 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
             </tr>
           </tbody>
         </table>
+      </div>
+      <div class="container mt-5">
+        <nav
+          class="pagination is-small"
+          role="navigation"
+          aria-label="pagination"
+        >
+          <button
+            class="button pagination-previous"
+            title="This is the first page"
+            [disabled]="pageNumber === 1"
+            (click)="changePage(pageNumber - 1)"
+          >
+            Previous
+          </button>
+          <button
+            class="button pagination-next"
+            [disabled]="pageNumber * pageSize >= userDisplay.length"
+            (click)="changePage(pageNumber + 1)"
+          >
+            Next page
+          </button>
+          <ul class="pagination-list">
+            <li *ngFor="let page of pageNumbers">
+              <a
+                class="pagination-link"
+                [class.is-current]="page === pageNumber"
+                (click)="changePage(page)"
+              >
+                {{ page }}
+              </a>
+            </li>
+          </ul>
+        </nav>
       </div>
 
       <!-- edit user modal -->
@@ -190,6 +224,11 @@ export class HomeComponent implements OnInit {
   userDisplay: User[] | null;
   userDetails: User | null;
 
+  displayedUsers: User[] = [];
+  pageNumber: number = 1;
+  pageSize: number = 10;
+  pageNumbers: number[] = [];
+
   constructor(
     private crudService: CrudService,
     private formBuilder: FormBuilder,
@@ -213,7 +252,30 @@ export class HomeComponent implements OnInit {
   private getAllUsers() {
     this.crudService.getAllUsers().subscribe((response) => {
       this.userDisplay = response;
+      this.updateDisplayedUsers();
     });
+  }
+
+  private updateDisplayedUsers() {
+    const startIndex = (this.pageNumber - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.displayedUsers = this.userDisplay.slice(startIndex, endIndex);
+    this.updatePageNumbers();
+  }
+
+  private updatePageNumbers() {
+    const pageCount = Math.ceil(this.userDisplay.length / this.pageSize);
+    this.pageNumbers = Array.from({ length: pageCount }, (_, i) => i + 1);
+  }
+
+  changePage(page: number): void {
+    if (
+      page >= 1 &&
+      page <= Math.ceil(this.userDisplay.length / this.pageSize)
+    ) {
+      this.pageNumber = page;
+      this.updateDisplayedUsers();
+    }
   }
 
   public createUser() {
