@@ -8,27 +8,28 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
   selector: "app-home",
   template: `
     <section class="section">
-      <div class="container">
-        <h1 class="title is-2">
-          Crude table with users ({{ userDisplay?.length }})
+      <div
+        class="container is-flex is-justify-content-space-between	is-align-items-center"
+      >
+        <h1 class="title is-3 m-0">
+          Users dashboard ({{ userDisplay?.length }})
         </h1>
         <button
-          class="button is-small is-primary"
+          class="button is-small is-warning"
           (click)="toggleCreateModal()"
         >
-          create user
+          Create user
         </button>
       </div>
-      <div class="container mt-3">
-        <table
-          class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth"
-        >
+      <div class="container mt-5">
+        <table class="table is-striped is-narrow is-hoverable is-fullwidth">
           <thead>
             <tr>
-              <th>username</th>
-              <th>email</th>
-              <th>tasks number</th>
-              <th>action</th>
+              <th>Id</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Tasks number</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -37,13 +38,16 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
               (click)="navigateToUserPage(user)"
             >
               <td>
+                {{ user.id }}
+              </td>
+              <td>
                 {{ user.username }}
               </td>
               <td>
                 {{ user.email }}
               </td>
               <td>
-                {{ user.numberOfTasks }}
+                {{ user.totalTasks }}
               </td>
               <td>
                 <div class="buttons">
@@ -51,13 +55,13 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
                     class="button is-small is-warning"
                     (click)="selectUser(user)"
                   >
-                    edit
+                    Edit
                   </button>
                   <button
                     class="button is-small is-danger"
                     (click)="deleteUser(user.id)"
                   >
-                    delete
+                    Delete
                   </button>
                 </div>
               </td>
@@ -84,10 +88,10 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
                 <label class="label">Username</label>
                 <div class="control">
                   <input
-                    class="input"
+                    class="input is-warning"
                     type="text"
                     formControlName="username"
-                    placeholder="Username"
+                    placeholder="Ex. user1"
                   />
                 </div>
               </div>
@@ -96,10 +100,10 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
                 <label class="label">Email</label>
                 <div class="control">
                   <input
-                    class="input"
+                    class="input is-warning"
                     type="text"
                     formControlName="email"
-                    placeholder="Email"
+                    placeholder="Ex. user1@excemple.com"
                   />
                 </div>
               </div>
@@ -107,7 +111,7 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
           </section>
           <footer class="modal-card-foot">
             <button
-              class="button is-success"
+              class="button is-warning"
               (click)="createUser()"
               [disabled]="this.createUserForm.invalid"
             >
@@ -123,7 +127,9 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
         <div class="modal-background" (click)="toggleEditModal()"></div>
         <div class="modal-card">
           <header class="modal-card-head">
-            <p class="modal-card-title">Edit user</p>
+            <p class="modal-card-title">
+              Edit <b class="has-text-danger"> {{ userDetails?.username }}</b>
+            </p>
             <button
               class="delete"
               aria-label="close"
@@ -136,10 +142,10 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
                 <label class="label">Username</label>
                 <div class="control">
                   <input
-                    class="input"
+                    class="input is-warning"
                     type="text"
                     formControlName="username"
-                    placeholder="Username"
+                    placeholder="Edit username"
                     [ngModel]="userDetails?.username"
                   />
                 </div>
@@ -149,10 +155,10 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
                 <label class="label">Email</label>
                 <div class="control">
                   <input
-                    class="input"
+                    class="input is-warning"
                     type="text"
                     formControlName="email"
-                    placeholder="Email"
+                    placeholder="Edit email"
                     [ngModel]="userDetails?.email"
                   />
                 </div>
@@ -161,7 +167,7 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
           </section>
           <footer class="modal-card-foot">
             <button
-              class="button is-success"
+              class="button is-warning"
               (click)="updateUser()"
               [disabled]="this.editUserForm.invalid"
             >
@@ -173,7 +179,7 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
       </div>
     </section>
   `,
-  styles: [""],
+  styles: [],
 })
 export class HomeComponent implements OnInit {
   @ViewChild("editModal") editModal: ElementRef;
@@ -192,13 +198,13 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.createUserForm = this.formBuilder.group({
-      username: ["", Validators.required],
-      email: ["", Validators.required],
+      username: [null, [Validators.required, Validators.minLength(1)]],
+      email: [null, [Validators.required, Validators.email]],
     });
 
     this.editUserForm = this.formBuilder.group({
-      username: ["", Validators.required],
-      email: ["", Validators.required],
+      username: ["", [Validators.required, Validators.minLength(1)]],
+      email: ["", [Validators.required, Validators.email]],
     });
 
     this.getAllUsers();
@@ -207,50 +213,36 @@ export class HomeComponent implements OnInit {
   private getAllUsers() {
     this.crudService.getAllUsers().subscribe((response) => {
       this.userDisplay = response;
+      console.log(response)
     });
   }
 
   public createUser() {
-    this.crudService.createUser(this.createUserForm.value).subscribe(
-      (response) => {
-        console.log("Create successful", response);
-        this.toggleCreateModal();
-        this.getAllUsers();
-      },
-      (error) => {
-        console.error("Create failed", error);
-      }
-    );
+    this.crudService.createUser(this.createUserForm.value).subscribe(() => {
+      this.toggleCreateModal();
+      this.getAllUsers();
+    });
   }
 
   public updateUser() {
     this.crudService
-      .updateUser(this.userDetails.id, this.editUserForm.value)
-      .subscribe(
-        (response) => {
-          console.log("Update successful", response);
-          this.toggleEditModal();
-          this.getAllUsers();
-        },
-        (error) => {
-          console.error("Update failed", error);
-        }
-      );
+      .updateUser(this.userDetails.id, this.editUserForm.value).subscribe(() => {
+        this.toggleEditModal();
+        this.getAllUsers();
+      });
   }
 
   public deleteUser(id: number) {
-    this.crudService.deleteUserByID(id).subscribe(
-      (response) => {
-        console.log("Deleted successful", response);
-        this.getAllUsers();
-      },
-      (error) => {
-        console.error("Update failed", error);
-      }
-    );
+    event.stopPropagation();
+
+    this.crudService.deleteUserByID(id).subscribe(() => {
+      this.getAllUsers();
+    });
   }
 
   public selectUser(user: User) {
+    event.stopPropagation();
+
     this.toggleEditModal();
 
     this.userDetails = user;
