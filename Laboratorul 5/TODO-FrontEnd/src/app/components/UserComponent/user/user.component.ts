@@ -2,39 +2,76 @@ import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ActivatedRoute, Params } from "@angular/router";
 import { Task } from "src/app/models/Task/task";
+import { User } from "src/app/models/User/user";
 import { CrudService } from "src/app/services/CrudService/crud.service";
 
 @Component({
   selector: "app-user",
   template: `
     <section class="section">
-      <div class="container">
-        <h1 class="title is-2">
-          Crude table for
+      <div
+        class="container is-flex is-justify-content-space-between	is-align-items-center"
+      >
+        <h1 class="title is-3 m-0">
           <b class="has-text-danger">{{ userDetails?.username }}</b>
+          profile
         </h1>
-        <button
-          class="button is-small is-primary"
-          (click)="toggleCreateModal()"
-        >
-          create user task
-        </button>
+        <div class="buttons">
+          <button class="button is-small is-warning" routerLink="/">
+            Back
+          </button>
+          <button
+            class="button is-small is-success"
+            (click)="toggleCreateModal()"
+          >
+            Create user task
+          </button>
+        </div>
       </div>
-      <div class="container container-custom mt-3">
+      <div class="container container-custom mt-5">
         <div class="card" *ngFor="let task of userTasksDisplay">
           <div class="card-content">
-            <div class="media-content">
-              <p class="title is-4">{{ task?.title }}</p>
-            </div>
-            <div class="content">
-              {{ task?.description }}
+            <h4 class="title is-4">{{ task.title }}</h4>
+            <div class="content mt-3">
+              {{ truncateText(task.description, 400) }}
             </div>
           </div>
           <footer class="card-footer">
+            <a class="card-footer-item" (click)="selectUserTask(task, true)"
+              >Read</a
+            >
             <a class="card-footer-item" (click)="selectUserTask(task)">Edit</a>
             <a class="card-footer-item" (click)="deleteUserTask(task.id)">
               Delete
             </a>
+          </footer>
+        </div>
+      </div>
+
+      <!-- read user modal -->
+      <div class="modal" #readModal>
+        <div class="modal-background" (click)="toggleReadModal()"></div>
+        <div class="modal-card">
+          <header class="modal-card-head">
+            <p class="modal-card-title has-text-danger has-text-weight-bold	">
+              {{ userTaskDetails?.title }}
+            </p>
+            <button
+              class="delete"
+              aria-label="close"
+              (click)="toggleReadModal()"
+            ></button>
+          </header>
+          <section class="modal-card-body">
+            {{ userTaskDetails?.description }}
+          </section>
+          <footer class="modal-card-foot">
+            <button
+              class="button is-warning is-fullwidth"
+              (click)="toggleReadModal()"
+            >
+              close
+            </button>
           </footer>
         </div>
       </div>
@@ -52,15 +89,15 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
             ></button>
           </header>
           <section class="modal-card-body">
-            <form [formGroup]="createUserForm">
+            <form [formGroup]="createUserTaskForm">
               <div class="field">
                 <label class="label">Title</label>
                 <div class="control">
                   <input
-                    class="input"
+                    class="input is-warning"
                     type="text"
                     formControlName="title"
-                    placeholder="Title"
+                    placeholder="Task title"
                   />
                 </div>
               </div>
@@ -69,10 +106,10 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
                 <label class="label">Description</label>
                 <div class="control">
                   <textarea
-                    class="textarea"
+                    class="textarea is-warning"
                     type="text"
                     formControlName="description"
-                    placeholder="Description"
+                    placeholder="Task description"
                   ></textarea>
                 </div>
               </div>
@@ -80,9 +117,9 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
           </section>
           <footer class="modal-card-foot">
             <button
-              class="button is-success"
+              class="button is-warning"
               (click)="createUserTask()"
-              [disabled]="this.createUserForm.invalid"
+              [disabled]="this.createUserTaskForm.invalid"
             >
               Save changes
             </button>
@@ -96,7 +133,9 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
         <div class="modal-background" (click)="toggleEditModal()"></div>
         <div class="modal-card">
           <header class="modal-card-head">
-            <p class="modal-card-title">Edit task</p>
+            <p class="modal-card-title">
+              Edit <b class="has-text-danger">{{ userTaskDetails?.title }}</b>
+            </p>
             <button
               class="delete"
               aria-label="close"
@@ -104,15 +143,15 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
             ></button>
           </header>
           <section class="modal-card-body">
-            <form [formGroup]="editUserForm">
+            <form [formGroup]="editUserTaskForm">
               <div class="field">
                 <label class="label">Title</label>
                 <div class="control">
                   <input
-                    class="input"
+                    class="input is-warning"
                     type="text"
                     formControlName="title"
-                    placeholder="Title"
+                    placeholder="Edit title"
                     [ngModel]="userTaskDetails?.title"
                   />
                 </div>
@@ -122,10 +161,10 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
                 <label class="label">Description</label>
                 <div class="control">
                   <textarea
-                    class="textarea"
+                    class="textarea is-warning"
                     type="text"
                     formControlName="description"
-                    placeholder="Description"
+                    placeholder="Edit description"
                     [ngModel]="userTaskDetails?.description"
                   >
                   </textarea>
@@ -135,9 +174,9 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
           </section>
           <footer class="modal-card-foot">
             <button
-              class="button is-success"
+              class="button is-warning"
               (click)="updateUserTask()"
-              [disabled]="this.editUserForm.invalid"
+              [disabled]="this.editUserTaskForm.invalid"
             >
               Save changes
             </button>
@@ -152,9 +191,15 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
       .card {
         height: max-content;
       }
+
+      .card-content {
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
       .container-custom {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         grid-gap: 1em 1em;
       }
     `,
@@ -163,31 +208,32 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
 export class UserComponent implements OnInit {
   @ViewChild("editModal") editModal: ElementRef;
   @ViewChild("createModal") createModal: ElementRef;
+  @ViewChild("readModal") readModal: ElementRef;
 
   id: any;
   name: string;
-  userDetails: any;
-  userTaskDetails: any;
+  userDetails: User;
+  userTaskDetails: Task;
 
-  createUserForm: FormGroup;
-  editUserForm: FormGroup;
-  userTasksDisplay: any = [];
+  createUserTaskForm: FormGroup;
+  editUserTaskForm: FormGroup;
+  userTasksDisplay: Task[];
 
   constructor(
     private crudService: CrudService,
     private route: ActivatedRoute,
     private formBuilder: FormBuilder
-  ) { }
+  ) {}
 
   ngOnInit(): void {
-    this.createUserForm = this.formBuilder.group({
-      title: ["", Validators.required],
-      description: ["", Validators.required],
+    this.createUserTaskForm = this.formBuilder.group({
+      title: [null, [Validators.required, Validators.maxLength(30)]],
+      description: [null, [Validators.required, Validators.minLength(1)]],
     });
 
-    this.editUserForm = this.formBuilder.group({
-      title: ["", Validators.required],
-      description: ["", Validators.required],
+    this.editUserTaskForm = this.formBuilder.group({
+      title: [null, [Validators.required, Validators.maxLength(30)]],
+      description: [null, [Validators.required, Validators.minLength(1)]],
     });
 
     this.route.params.subscribe((params: Params) => {
@@ -207,61 +253,67 @@ export class UserComponent implements OnInit {
 
   private getAllUserTasks() {
     this.crudService.getAllUserTasks(this.id).subscribe((response) => {
-      console.log(response);
       this.userTasksDisplay = response;
     });
   }
 
   public createUserTask() {
     this.crudService
-      .createUserTask(this.id, this.createUserForm.value)
-      .subscribe(
-        (response) => {
-          console.log("Create successful", response);
-          this.toggleCreateModal();
-          this.getAllUserTasks();
-        },
-        (error) => {
-          console.error("Create failed", error);
-        }
-      );
+      .createUserTask(this.id, this.createUserTaskForm.value)
+      .subscribe(() => {
+        this.createUserTaskForm.reset();
+        this.toggleCreateModal();
+        this.getAllUserTasks();
+      });
   }
 
   public updateUserTask() {
     this.crudService
-      .updateUserTask(this.id, this.userTaskDetails.id, this.editUserForm.value)
-      .subscribe(
-        (response) => {
-          console.log("Update successful", response);
-          this.toggleEditModal();
-          this.getAllUserTasks();
-        },
-        (error) => {
-          console.error("Update failed", error);
-        }
-      );
-  }
-
-  public deleteUserTask(taskId: number) {
-    this.crudService.deleteUserTaskByID(this.id, taskId).subscribe(
-      (response) => {
-        console.log("Deleted successful", response);
+      .updateUserTask(
+        this.id,
+        this.userTaskDetails.id,
+        this.editUserTaskForm.value
+      )
+      .subscribe(() => {
+        this.toggleEditModal();
         this.getAllUserTasks();
-      },
-      (error) => {
-        console.error("Update failed", error);
-      }
+      });
+  }
+  public deleteUserTask(taskId: number) {
+    const isConfirmed = window.confirm(
+      "Are you sure you want to delete this task?"
     );
+
+    if (isConfirmed) {
+      this.crudService.deleteUserTaskByID(this.id, taskId).subscribe(() => {
+        this.getAllUserTasks();
+      });
+    }
   }
 
-  public selectUserTask(task: Task) {
-    this.toggleEditModal();
+  public selectUserTask(task: Task, isRead: boolean = false) {
+    if (isRead) {
+      this.userTaskDetails = task;
+      this.toggleReadModal();
+    } else {
+      this.toggleEditModal();
+      this.userTaskDetails = task;
+      this.editUserTaskForm.setValue({
+        title: task.title,
+        description: task.description,
+      });
+    }
+  }
 
-    this.userTaskDetails = task;
-    this.editUserForm.setValue({
-      title: task.title,
-      description: task.description,
-    });
+  public truncateText(text: string, maxLength: number): string {
+    if (text.length > maxLength) {
+      return text.slice(0, maxLength) + "...";
+    }
+    return text;
+  }
+
+  public toggleReadModal() {
+    this.readModal.nativeElement.classList.toggle("is-active");
   }
 
   public toggleCreateModal() {

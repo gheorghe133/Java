@@ -2,7 +2,6 @@ package TODO.RestAPI.Server.service;
 
 import TODO.RestAPI.Server.entity.User;
 import TODO.RestAPI.Server.entity.Task;
-import TODO.RestAPI.Server.entity.Category;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,7 @@ public class UserService {
 
     public List<User> getAllUsers() {
         List<User> users = userRepository.findAll();
-        users.forEach(User::updateNumberOfTasks);
+        users.forEach(user -> user.setTotalTasks(user.getTasks().size()));
         return users;
     }
 
@@ -32,24 +31,29 @@ public class UserService {
     }
 
     public User createUser(User user) {
-        // Logica de validare sau alte operații înainte de a salva utilizatorul
         return userRepository.save(user);
     }
 
     public User updateUser(Long id, User updatedUser) {
         if (userRepository.existsById(id)) {
-            updatedUser.setId(id);
-            return userRepository.save(updatedUser);
-        } else {
-            return null;
+            User existingUser = userRepository.findById(id).orElse(null);
+            if (existingUser != null) {
+                existingUser.setUsername(updatedUser.getUsername());
+                existingUser.setEmail(updatedUser.getEmail());
+
+                if (updatedUser.getTasks() != null) {
+                    existingUser.setTasks(updatedUser.getTasks());
+                }
+
+                return userRepository.save(existingUser);
+            }
         }
+        return null;
     }
 
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
-
-    // Methods for tasks and categories specific to a user
 
     public List<Task> getAllTasksForUser(Long userId) {
         return getUserById(userId)
@@ -74,10 +78,8 @@ public class UserService {
 
     public Task updateTaskForUser(Long userId, Long taskId, Task updatedTask) {
         getTaskByIdForUser(userId, taskId).ifPresent(task -> {
-            // Update task properties as needed
             task.setTitle(updatedTask.getTitle());
             task.setDescription(updatedTask.getDescription());
-            // Save the updated task
             userRepository.save(task.getUser());
         });
         return updatedTask;
@@ -88,44 +90,6 @@ public class UserService {
         getTaskByIdForUser(userId, taskId).ifPresent(task -> {
             task.getUser().getTasks().remove(task);
             userRepository.save(task.getUser());
-        });
-    }
-
-    public List<Category> getAllCategoriesForUser(Long userId) {
-        return getUserById(userId)
-                .map(User::getCategories)
-                .orElse(null);
-    }
-
-    public Optional<Category> getCategoryByIdForUser(Long userId, Long categoryId) {
-        return getAllCategoriesForUser(userId).stream()
-                .filter(category -> category.getId().equals(categoryId))
-                .findFirst();
-    }
-
-    public Category createCategoryForUser(Long userId, Category category) {
-        getUserById(userId).ifPresent(user -> {
-            category.setUser(user);
-            user.getCategories().add(category);
-            userRepository.save(user);
-        });
-        return category;
-    }
-
-    public Category updateCategoryForUser(Long userId, Long categoryId, Category updatedCategory) {
-        getCategoryByIdForUser(userId, categoryId).ifPresent(category -> {
-            // Update category properties as needed
-            category.setName(updatedCategory.getName());
-            // Save the updated category
-            userRepository.save(category.getUser());
-        });
-        return updatedCategory;
-    }
-
-    public void deleteCategoryForUser(Long userId, Long categoryId) {
-        getCategoryByIdForUser(userId, categoryId).ifPresent(category -> {
-            category.getUser().getCategories().remove(category);
-            userRepository.save(category.getUser());
         });
     }
 }

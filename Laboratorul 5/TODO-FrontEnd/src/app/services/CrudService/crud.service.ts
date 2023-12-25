@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http'
+import { HttpClient } from '@angular/common/http'
 
 // interfaces
 import { User } from 'src/app/models/User/user';
 import { Task } from 'src/app/models/Task/task';
-import { Category } from 'src/app/models/Category/category';
+
+//RxJS
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -35,14 +36,6 @@ export class CrudService {
     return this.HttpClient.get(`${this.apiUrl}/${userId}/tasks/${taskId}`)
   }
 
-  public getAllUserCategories(userId: number): Observable<any> {
-    return this.HttpClient.get(`${this.apiUrl}/${userId}/categories`)
-  }
-
-  public getUserCategoryByID(userId: number, categoryId: number): Observable<any> {
-    return this.HttpClient.get(`${this.apiUrl}/${userId}/categories/${categoryId}`)
-  }
-
   // POST Requests
   public createUser(user: User): Observable<any> {
     return this.HttpClient.post(`${this.apiUrl}`, user)
@@ -50,10 +43,6 @@ export class CrudService {
 
   public createUserTask(userId: number, task: Task): Observable<any> {
     return this.HttpClient.post(`${this.apiUrl}/${userId}/tasks`, task)
-  }
-
-  public createUserCategory(userId: number, category: Category): Observable<any> {
-    return this.HttpClient.post(`${this.apiUrl}/${userId}/categories`, category)
   }
 
   // PUT Requests
@@ -65,10 +54,6 @@ export class CrudService {
     return this.HttpClient.put(`${this.apiUrl}/${userId}/tasks/${taskId}`, task)
   }
 
-  public updateUserCategory(userId: number, categoryId: number, category: Category): Observable<any> {
-    return this.HttpClient.put(`${this.apiUrl}/${userId}/categories/${categoryId}`, category)
-  }
-
   // DELETE Requests
   public deleteUserByID(userId: number): Observable<any> {
     return this.HttpClient.delete(`${this.apiUrl}/${userId}`)
@@ -76,9 +61,5 @@ export class CrudService {
 
   public deleteUserTaskByID(userId: number, taskId: number): Observable<any> {
     return this.HttpClient.delete(`${this.apiUrl}/${userId}/tasks/${taskId}`)
-  }
-
-  public deleteUserCategoryByID(userId: number, categoryId: number): Observable<any> {
-    return this.HttpClient.delete(`${this.apiUrl}/${userId}/categories/${categoryId}`)
   }
 }

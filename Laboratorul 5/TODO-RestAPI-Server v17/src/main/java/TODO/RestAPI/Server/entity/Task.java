@@ -19,6 +19,6 @@ public class Task {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonIgnore  // Ignore the user property during JSON serialization
+    @JsonIgnore
     private User user;
 }

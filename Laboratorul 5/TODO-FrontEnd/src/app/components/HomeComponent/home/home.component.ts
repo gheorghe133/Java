@@ -187,8 +187,8 @@ export class HomeComponent implements OnInit {
 
   createUserForm: FormGroup;
   editUserForm: FormGroup;
-  userDisplay: any = [];
-  userDetails: any;
+  userDisplay: User[] | null;
+  userDetails: User | null;
 
   constructor(
     private crudService: CrudService,
@@ -203,8 +203,8 @@ export class HomeComponent implements OnInit {
     });
 
     this.editUserForm = this.formBuilder.group({
-      username: ["", [Validators.required, Validators.minLength(1)]],
-      email: ["", [Validators.required, Validators.email]],
+      username: [null, [Validators.required, Validators.minLength(1)]],
+      email: [null, [Validators.required, Validators.email]],
     });
 
     this.getAllUsers();
@@ -213,12 +213,12 @@ export class HomeComponent implements OnInit {
   private getAllUsers() {
     this.crudService.getAllUsers().subscribe((response) => {
       this.userDisplay = response;
-      console.log(response)
     });
   }
 
   public createUser() {
     this.crudService.createUser(this.createUserForm.value).subscribe(() => {
+      this.createUserForm.reset();
       this.toggleCreateModal();
       this.getAllUsers();
     });
@@ -226,7 +226,8 @@ export class HomeComponent implements OnInit {
 
   public updateUser() {
     this.crudService
-      .updateUser(this.userDetails.id, this.editUserForm.value).subscribe(() => {
+      .updateUser(this.userDetails.id, this.editUserForm.value)
+      .subscribe(() => {
         this.toggleEditModal();
         this.getAllUsers();
       });
