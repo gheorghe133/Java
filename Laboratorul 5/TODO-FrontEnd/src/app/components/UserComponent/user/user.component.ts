@@ -10,7 +10,7 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
   template: `
     <section class="section">
       <div
-        class="container is-flex is-justify-content-space-between	is-align-items-center"
+        class="container is-flex is-justify-content-space-between	is-align-items-baseline"
       >
         <h1 class="title is-3 m-0">
           <b class="has-text-danger">{{ userDetails?.username }}</b>

@@ -9,10 +9,13 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
   template: `
     <section class="section">
       <div
-        class="container is-flex is-justify-content-space-between	is-align-items-center"
+        class="container is-flex is-justify-content-space-between	is-align-items-baseline"
       >
         <h1 class="title is-3 m-0">
-          Users dashboard ({{ userDisplay?.length }})
+          <ng-container *ngIf="userDisplay?.length">
+            Users dashboard
+            <b class="has-text-danger"> ({{ userDisplay?.length }}) </b>
+          </ng-container>
         </h1>
         <button
           class="button is-small is-warning"
@@ -85,7 +88,7 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
           </button>
           <button
             class="button pagination-next"
-            [disabled]="pageNumber * pageSize >= userDisplay.length"
+            [disabled]="pageNumber * pageSize >= userDisplay?.length"
             (click)="changePage(pageNumber + 1)"
           >
             Next page
@@ -268,7 +271,7 @@ export class HomeComponent implements OnInit {
     this.pageNumbers = Array.from({ length: pageCount }, (_, i) => i + 1);
   }
 
-  changePage(page: number): void {
+  public changePage(page: number): void {
     if (
       page >= 1 &&
       page <= Math.ceil(this.userDisplay.length / this.pageSize)
@@ -298,9 +301,15 @@ export class HomeComponent implements OnInit {
   public deleteUser(id: number) {
     event.stopPropagation();
 
-    this.crudService.deleteUserByID(id).subscribe(() => {
-      this.getAllUsers();
-    });
+    const isConfirmed = window.confirm(
+      "Are you sure you want to delete this user?"
+    );
+
+    if (isConfirmed) {
+      this.crudService.deleteUserByID(id).subscribe(() => {
+        this.getAllUsers();
+      });
+    }
   }
 
   public selectUser(user: User) {
