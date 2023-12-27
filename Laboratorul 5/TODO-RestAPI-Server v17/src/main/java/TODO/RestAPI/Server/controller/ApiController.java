@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
@@ -19,15 +18,9 @@ public class ApiController {
 
     @GetMapping
     public List<User> getAllUsers() {
-        return userService.getAllUsers().stream()
-                .map(this::enrichUserWithTotalTasks)
-                .collect(Collectors.toList());
+        return userService.getAllUsers();
     }
 
-    private User enrichUserWithTotalTasks(User user) {
-        user.setTotalTasks(user.getTasks().size());
-        return user;
-    }
     @GetMapping("/{userId}")
     public User getUserById(@PathVariable Long userId) {
         return userService.getUserById(userId).orElse(null);

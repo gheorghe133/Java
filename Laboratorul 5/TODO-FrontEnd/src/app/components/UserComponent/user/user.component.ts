@@ -14,7 +14,10 @@ import { CrudService } from "src/app/services/CrudService/crud.service";
       >
         <h1 class="title is-3 m-0">
           <b class="has-text-danger">{{ userDetails?.username }}</b>
-          profile
+          tasks
+          <ng-container *ngIf="userTasksDisplay?.length">
+            ({{ userTasksDisplay?.length }})
+          </ng-container>
         </h1>
         <div class="buttons">
           <button class="button is-small is-warning" routerLink="/">
